@@ -21,22 +21,19 @@ class EventMarket extends Component {
         primaryMarket: false,
     };
     componentDidMount() {
-        const { marketId: id } = this.props;
-        sendRequest([{ type: 'getMarket', id }]);
-    };
-    componentDidUpdate = (prevProps) => {
-        if (JSON.stringify(prevProps.markets) !== JSON.stringify(this.props.markets)) {
-            const displayableMarkets = this.props.markets.filter(market => market.status.displayable);
-            const market = displayableMarkets.find(market => market.marketId === this.props.marketId) || null;
-            this.setState({ market });
+        const { marketId: id, webSocketIsOpen } = this.props;
+        if(webSocketIsOpen) {
+            sendRequest([{ type: 'getMarket', id }]);
         }
-    }
+    };
     componentWillUnmount() {
         const { marketId } = this.props;
         this.props.deleteMarkets([marketId]);
     };
     render = () => {
-        const { market } = this.state;
+       // const { market } = this.state;
+       const displayableMarkets = this.props.markets.filter(market => market.status.displayable);
+        const market = displayableMarkets.find(market => market.marketId === this.props.marketId) || null;
         return (
             <Fragment>
             {this.props.render(market)}

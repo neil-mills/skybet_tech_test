@@ -1,11 +1,12 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import { connect } from 'react-redux';
 import { sendRequest } from '../actions/webSocket';
 import PropTypes from 'prop-types';
 import { addBet } from '../actions/betSlip';
 import { deleteOutcomes } from '../actions/outcomes';
-import styled, {css} from "styled-components";
+import styled, { css } from "styled-components";
 import { formatPrice } from '../utils';
+
 
 const column = css`
     display: block;
@@ -45,36 +46,25 @@ class EventMarketOutcomes extends Component {
         primaryMarket: false,
         outcomes: []
     };
-    componentDidMount(){
-        const { outcomes = [] } = this.props.market;
-        if(outcomes.length) {
-            const request = outcomes.map(id => ({ type: 'getOutcome', id}));
-            sendRequest(request);
+    componentDidMount() {
+        const { webSocketIsOpen } = this.props;
+        const { outcomes: marketOutcomes = [] } = this.props.market;
+        if (marketOutcomes.length && webSocketIsOpen) {
+         const request = marketOutcomes.map(id => ({ type: 'getOutcome', id }));
+         sendRequest(request);
         };
     };
     componentWillUnmount() {
         const { outcomes } = this.props.market;
         this.props.deleteOutcomes(outcomes);
     };
-    componentDidUpdate = (prevProps) => {
-        const { primaryMarket } = this.props;
-        if (JSON.stringify(prevProps.outcomes) !== JSON.stringify(this.props.outcomes)) {
-            const displayableOutcomes = this.props.outcomes.filter(outcome => outcome.status.displayable);
-            let marketOutcomes = displayableOutcomes.filter(outcome => this.props.market.outcomes.includes(outcome.outcomeId));
-            if(marketOutcomes.length) {
-                marketOutcomes = primaryMarket ? marketOutcomes.slice(0, 3) : marketOutcomes;
-                marketOutcomes.sort((a, b) => a.displayOrder - b.displayOrder);
-            }
-            this.setState({ marketOutcomes });
-        }
-    }
     handleOutcomeClick = (e, outcomeId) => {
         const { event, outcomes, market } = this.props;
         const outcome = outcomes.find(o => o.outcomeId === outcomeId)
         e.preventDefault();
         this.props.addBet({ id: outcome.outcomeId, event, market, outcome });
     }
-    renderOutcome = (outcome) => {
+    renderOutcome = (outcome, i) => {
         const { outcomeId, name, price } = outcome;
         const { isDecimal } = this.props;
         return (
@@ -82,20 +72,32 @@ class EventMarketOutcomes extends Component {
                 className="outcome"
                 key={outcomeId}
                 onClick={(e) => this.handleOutcomeClick(e, outcome.outcomeId)}
+                data-testid={`outcome-item`}
             >
                 <OutcomeColumn className="outcome__name">{name}</OutcomeColumn>
-                <OutcomeLink className="outcome__price">{formatPrice(price, isDecimal)}</OutcomeLink>
+                <OutcomeLink className="outcome__price"  data-testid={`outcome-price-${i}`}>{formatPrice(price, isDecimal)}</OutcomeLink>
             </Outcome>
         )
     }
     render() {
-        let { marketOutcomes } = this.state;
+        //let { marketOutcomes } = this.state;
+        const { primaryMarket, outcomes, market, isDecimal } = this.props;
+        const displayableOutcomes = outcomes.filter(outcome => outcome.status.displayable);
+        let marketOutcomes = displayableOutcomes.filter(outcome => market.outcomes.includes(outcome.outcomeId));
+        if (marketOutcomes.length) {
+            marketOutcomes = primaryMarket ? marketOutcomes.slice(0, 3) : marketOutcomes;
+            marketOutcomes.sort((a, b) => a.displayOrder - b.displayOrder);
+        }
         return (
-            <div className="event-market-outcomes">
+            <Fragment>
                 {marketOutcomes.length > 0 &&
-                    marketOutcomes.map((outcome, i) => this.renderOutcome(outcome))
+                    <div className="event-market-outcomes">
+                {marketOutcomes.length > 0 &&
+                    marketOutcomes.map((outcome, i) => this.renderOutcome(outcome, i))
                 }
             </div>
+                }
+            </Fragment>
         )
     }
 }

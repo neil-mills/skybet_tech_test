@@ -44,11 +44,12 @@ class Header extends Component {
         const { isDecimal } = this.props;
         return (
             <HeaderWrapper>
-                <HomeLink onClick={this.handleHomeClick}>
+                <HomeLink onClick={this.handleHomeClick} data-testid="home-link">
                     <Logo src={LogoSrc} />
                 </HomeLink>
                 <Button
                     onClick={this.handlePriceFormatChange}
+                    data-testid="price-btn"
                 >
                     {`View ${ isDecimal? 'Fractional Prices' : 'Decimal Prices'}`}
                 </Button>

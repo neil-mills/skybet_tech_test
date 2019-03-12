@@ -48,10 +48,13 @@ class EventDetail extends Component {
         this.setState({ eventId });
     };
     componentWillUnmount() {
+        const { webSocketIsOpen } = this.props;
         this.props.deleteEvents();
         this.props.deleteMarkets();
         this.props.deleteOutcomes();
-        sendRequest([{ type: 'unsubscribe' }]);
+        if (webSocketIsOpen) {
+            sendRequest([{ type: 'unsubscribe' }]);
+        }
     };
     componentDidUpdate = (prevProps) => {
         const { events, webSocketIsOpen } = this.props;
@@ -75,11 +78,12 @@ class EventDetail extends Component {
         this.props.history.push('/');
     };
     renderScoreboard = () => {
-        const { event } = this.state;
+        //const { event } = this.state;
+        const event = this.props.events[0]
         const { name, competitors, linkedEventTypeName, scores, startTime, status, typeName } = event;
         let elapsedTime = moment(startTime).diff(moment())
         const time = moment(elapsedTime).format('mm');
-        console.log('time', time);
+
         return (
             <Scoreboard className="scoreboard">
                 <p className="scoreboard__clock">{`${time}'`}</p>
@@ -90,7 +94,9 @@ class EventDetail extends Component {
         )
     };
     render() {
-        const { event } = this.state;
+        const eventId = this.props.match.params.eventId || null;
+        let event = null;
+        event = this.props.events.find(event => event.eventId === Number(eventId)) || null;
         return (
             <Fragment>
                 {event &&
@@ -110,7 +116,6 @@ class EventDetail extends Component {
                                         event={event}
                                         key={i}
                                         render={(market = null) => {
-                                            console.log('market', market);
                                             if (market) {
                                                 return (
                                                     <Accordion isOpen={i < 2 ? true : false} key={market.marketId} className="event" title={market.name}>

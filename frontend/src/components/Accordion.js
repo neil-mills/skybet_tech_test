@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import styled from "styled-components";
 import PropTypes from 'prop-types';
-import '../images/chevron-down.svg';
 import { ReactComponent as Chevron } from '../images/chevron-down.svg';
 let Wrapper = styled.section`
     display: block;
@@ -53,19 +52,19 @@ export default class Accordion extends Component {
             fill: white;
         `;
         return (
-            <Wrapper className={`accordion${isOpen ? ` accordion--open` : ``}`}>
+            <Wrapper className={`accordion${isOpen ? ` accordion--open` : ``}`} data-testid="accordion">
                 <Handle className="accordion-handle" onClick={this.handleClick}>
                     <Title className="accordion-handle__text">{title}</Title>
                     <Arrow>
-                    <Chevron style={{position: 'absolute', top: 0, left: 0}} />
+                        <Chevron style={{ position: 'absolute', top: 0, left: 0 }} />
                     </Arrow>
-                  
+
                 </Handle>
-                <Content className="accordion__content">
-                    {isOpen &&
-                    children
-                    }
-                </Content>
+                {isOpen &&
+                    <Content className="accordion__content" data-testid="content">
+                        {children}
+                    </Content>
+                }
             </Wrapper>
         );
     }

@@ -9,6 +9,7 @@ import EventMarket from './EventMarket';
 import Accordion from './Accordion';
 import { withRouter } from 'react-router-dom';
 import EventMarketOutcomes from './EventMarketOutcomes';
+import PropTypes from 'prop-types';
 
 let EventFooter = styled.div`
     display: flex;
@@ -38,6 +39,12 @@ class LiveEvents extends Component {
     state = {
         liveFootballEvents: [],
     };
+    static propsTypes = {
+        liveEvents: PropTypes.array.isRequired
+    };
+    static defaultProps = {
+        markets: null
+    };
     componentDidMount() {
         const { webSocketIsOpen } = this.props;
         if (webSocketIsOpen) {
@@ -52,18 +59,22 @@ class LiveEvents extends Component {
         if (JSON.stringify(prevProps.liveEvents) !== JSON.stringify(liveEvents)) {
             const liveFootballEvents = liveEvents
                 .filter(event => event.className === 'Football' && event.status.displayable)
-                .sort((a, b) => a.displayOrder - b.displayOrder);
             const keys = liveFootballEvents.map(event => `e.${event.eventId}`);
-            const subscription = { type: 'subscribe', keys, clearSubscription: false };
-            sendRequest([subscription]);
+            if (webSocketIsOpen) {
+                const subscription = { type: 'subscribe', keys, clearSubscription: true };
+                sendRequest([subscription]);
+            }
             this.setState({ liveFootballEvents });
         };
     };
     componentWillUnmount() {
+        const { webSocketIsOpen } = this.props;
         this.props.deleteLiveEvents();
         this.props.deleteMarkets();
         this.props.deleteOutcomes();
-        sendRequest([{ type: 'unsubscribe' }]);
+        if (webSocketIsOpen) {
+            sendRequest([{ type: 'unsubscribe' }]);
+        }
     };
     getLiveEvents = () => {
         sendRequest([{ type: "getLiveEvents", primaryMarkets: true }]);
@@ -73,39 +84,49 @@ class LiveEvents extends Component {
         this.props.history.push(`/event/${eventId}`)
     }
     render() {
-        const { liveFootballEvents } = this.state;
+        const { liveEvents } = this.props;
+        const liveFootballEvents = liveEvents
+            .filter(event => event.className === 'Football' && event.status.displayable)
+            .sort((a, b) => a.displayOrder - b.displayOrder);
         return (
             <Fragment>
                 <TypeTitle className="type-title">
                     <h1 className="type-title__text">Football Live</h1>
+                    {liveEvents.length}
                 </TypeTitle>
                 {liveFootballEvents.map((event, i) => (
-                    <Accordion isOpen={i < 5 ? true : false} className="event" title={event.name} key={event.eventId}>
-                        <EventMarket
-                            event={event}
-                            marketId={event.markets[0]}
-                            render={(market = null) => {
-                                if (market) {
-                                    return (
-                                        <Fragment>
-                                            <MarketTitle>{market.name}</MarketTitle>
-                                            <EventMarketOutcomes
-                                                market={market}
-                                                event={event}
-                                                primaryMarket={true}
-                                            />
-                                        </Fragment>
-                                    )
-                                }
-                            }
-                            }
-                        />
-                        <EventFooter><a onClick={(e) => this.handleViewAllMarkets(e, event.eventId)}>View all markets</a></EventFooter>
+                    <Accordion
+                        isOpen={i < 5 ? true : false}
+                        className="event"
+                        title={event.name}
+                        key={event.eventId}
+                    >
+                        {i < 5 &&
+                            <Fragment>
+                                <EventMarket
+                                    event={event}
+                                    marketId={event.markets[0]}
+                                    render={(market = null) => {
+                                        if (market) {
+                                            return (
+                                                <Fragment>
+                                                    <MarketTitle data-testid={`market-title-${i}`}>{market.name}</MarketTitle>
+                                                    <EventMarketOutcomes
+                                                        market={market}
+                                                        event={event}
+                                                        primaryMarket={true}
+                                                    />
+                                                </Fragment>
+                                            )
+                                        }
+                                    }
+                                    }
+                                />
+                                <EventFooter><a onClick={(e) => this.handleViewAllMarkets(e, event.eventId)}>View all markets</a></EventFooter>
+                            </Fragment>
+                        }
                     </Accordion>
                 ))}
-                {/* <EventsList
-                    events={liveFootballEvents}
-                /> */}
             </Fragment>
         )
     }
