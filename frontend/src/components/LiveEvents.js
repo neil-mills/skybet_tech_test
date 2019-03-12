@@ -92,7 +92,6 @@ class LiveEvents extends Component {
             <Fragment>
                 <TypeTitle className="type-title">
                     <h1 className="type-title__text">Football Live</h1>
-                    {liveEvents.length}
                 </TypeTitle>
                 {liveFootballEvents.map((event, i) => (
                     <Accordion
@@ -122,7 +121,7 @@ class LiveEvents extends Component {
                                     }
                                     }
                                 />
-                                <EventFooter><a onClick={(e) => this.handleViewAllMarkets(e, event.eventId)}>View all markets</a></EventFooter>
+                                <EventFooter><a onClick={(e) => this.handleViewAllMarkets(e, event.eventId)} data-testid="view-markets">View all markets</a></EventFooter>
                             </Fragment>
                         }
                     </Accordion>
