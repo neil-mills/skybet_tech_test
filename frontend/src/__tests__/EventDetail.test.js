@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, waitForElement, debug, cleanup } from 'react-testing-library';
+import { render, waitForElement, debug, fireEvent, cleanup } from 'react-testing-library';
 import { eventData, markets } from '../mockData';
 import EventDetail from '../components/EventDetail';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { MemoryRouter, Route } from 'react-router-dom';
-
+import { createMemoryHistory } from 'history';
+const history = createMemoryHistory();
 afterEach(() => {
     cleanup();
 });
@@ -33,7 +34,10 @@ test('<EventDetail /> renders the correct number of markets', async () => {
     await server.connected;
     debug();
    await waitForElement(() => getByTestId(`accordion`));
+   const backLink = getByTestId('back-link')
    expect(getAllByTestId('accordion').length).toBe(markets.length);
+   fireEvent.click(backLink);
+   expect(history.location.pathname).toBe('/');
 });
 
 

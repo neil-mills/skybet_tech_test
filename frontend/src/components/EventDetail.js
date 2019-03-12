@@ -102,7 +102,7 @@ class EventDetail extends Component {
                 {event &&
                     <div className="event-page">
                         <Header className="event-page-header">
-                            <a onClick={this.handleBackClick}>Back</a>
+                            <a onClick={this.handleBackClick} data-testid="back-link">Back</a>
                         </Header>
                         {this.renderScoreboard()}
                         <TypeTitle>
